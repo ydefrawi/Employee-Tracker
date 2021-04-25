@@ -13,6 +13,6 @@ So that I can organize and plan my business
     "inquirer": "^8.0.0",
     "mysql": "^2.18.1"
 
-![Start Screen](.\Images\Ascii.PNG?raw=true "Employee Tracker")
+![Start Screen](./Images/Ascii.PNG?raw=true "Employee Tracker")
 ![Department](.\Images\Department.PNG?raw=true "View Employees by Department")
 ![Manager](.\Images\Manager.PNG?raw=true "View Employees By Manager")

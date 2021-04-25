@@ -14,5 +14,5 @@ So that I can organize and plan my business
     "mysql": "^2.18.1"
 
 ![Start Screen](./Images/Ascii.PNG?raw=true "Employee Tracker")
-![Department](.\Images\Department.PNG?raw=true "View Employees by Department")
-![Manager](.\Images\Manager.PNG?raw=true "View Employees By Manager")
+![Department](./Images/Department.PNG?raw=true "View Employees by Department")
+![Manager](./Images/Manager.PNG?raw=true "View Employees By Manager")

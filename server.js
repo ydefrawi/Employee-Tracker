@@ -219,7 +219,16 @@ const selectManager = (managerChoices,answer) => {
           const query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${answer.firstName}', '${answer.lastName}', '${answer.role}', '${mgrAnswer.managerName}')`
           connection.query(query, (err, res) => {
             if (err) throw err
-            connection.query("SELECT * FROM employeedb.employee;", (err, res) => {
+            const query = `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS Employee_Name, role.title AS Title, role.salary AS Salary, department.department_name AS Department, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
+            from employee
+            left join role 
+            on employee.role_id = role.id
+            left join department 
+            on role.department_id = department.id
+            left join employee manager
+            on manager.id = employee.manager_id
+            order by employee.id;`
+            connection.query(query, (err, res) => {
               if (err) throw err
               console.table(res)
               console.log(`${answer.firstName} ${answer.lastName} has been added to your employees!\n`)

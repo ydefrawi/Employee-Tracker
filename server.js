@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const path = require('path')
 const inquirer = require ('inquirer');
+let queries = require ('./queries')
 const introAscii = `
 ███████╗███╗   ███╗██████╗ ██╗      ██████╗ ██╗   ██╗███████╗███████╗    ████████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗ 
 ██╔════╝████╗ ████║██╔══██╗██║     ██╔═══██╗╚██╗ ██╔╝██╔════╝██╔════╝    ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
@@ -141,7 +142,7 @@ addAnotherDept = () => {
 
 //Function that prompts user for info on the employee they'd like to add
 addEmployee = () => {
-  connection.query('SELECT * FROM role', (err, res) => {
+  connection.query(queries.rolesQuery, (err, res) => {
     if (err) throw (err);
     const roleChoices = res.map((role) => {
       return {
@@ -149,7 +150,7 @@ addEmployee = () => {
         value: role.id
       }
     })
-    connection.query('SELECT * FROM employee', (err, res) => {
+    connection.query(queries.employeeTableQuery, (err, res) => {
       if (err) throw (err);
       const managerChoices = res.map((employee) => {
         return {
@@ -185,10 +186,10 @@ addEmployee = () => {
         ]).then((answer => {
           switch (answer.hasManager) {
             case "No":
-              const query = `INSERT INTO employee (first_name, last_name, role_id) VALUES ('${answer.firstName}', '${answer.lastName}', '${answer.role}')`
-              connection.query(query, (err, res) => {
+              const insertEmpQuery = `INSERT INTO employee (first_name, last_name, role_id) VALUES ('${answer.firstName}', '${answer.lastName}', '${answer.role}')`
+              connection.query(insertEmpQuery, (err, res) => {
                 if (err) throw err
-                connection.query("SELECT * FROM employeedb.employee;", (err, res) => {
+                connection.query(queries.currentEmployeeQuery, (err, res) => {
                   if (err) throw err
                   console.table(res)
                   console.log(`${answer.firstName} ${answer.lastName} has been added to your employees!`)
@@ -219,16 +220,7 @@ const selectManager = (managerChoices,answer) => {
           const query = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${answer.firstName}', '${answer.lastName}', '${answer.role}', '${mgrAnswer.managerName}')`
           connection.query(query, (err, res) => {
             if (err) throw err
-            const query = `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS Employee_Name, role.title AS Title, role.salary AS Salary, department.department_name AS Department, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
-            from employee
-            left join role 
-            on employee.role_id = role.id
-            left join department 
-            on role.department_id = department.id
-            left join employee manager
-            on manager.id = employee.manager_id
-            order by employee.id;`
-            connection.query(query, (err, res) => {
+            connection.query(queries.currentEmployeeQuery, (err, res) => {
               if (err) throw err
               console.table(res)
               console.log(`${answer.firstName} ${answer.lastName} has been added to your employees!\n`)
@@ -365,7 +357,7 @@ updateRole = () => {
               WHERE id=${answer.employee};`
           connection.query(query, (err, res) => {
             if (err) throw err
-            connection.query("SELECT * FROM employeedb.employee;", (err, res) => {
+            connection.query(`${queries.newRoleQuery} WHERE employee.id=${answer.employee}`, (err, res) => {
               if (err) throw err
               console.table(res)
               console.log(`Employee's role has been updated!`)
@@ -457,23 +449,13 @@ updateManager = () => {
               WHERE id=${answer.employee};`
               connection.query(query1, (err, res) => {
                 if (err) throw err
-                query2=`SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.department_name, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
-                from employee
-                left join role 
-                on employee.role_id = role.id
-                left join department 
-                on role.department_id = department.id
-                left join employee manager
-                on manager.id = employee.manager_id
-                order by employee.id;`
-                connection.query(query2, (err, res) => {
+                connection.query(`${queries.newEmpMgrQuery} WHERE employee.id=${answer.employee}`, (err, res) => {
                   if (err) throw err
+                  console.log(`\nEmployee's manager has been updated!`)
                   console.table(res)
-                  console.log(`Employee's manager has been updated!`)
                   whatNow();
                 })
               })
-
         }))
       })
   })
@@ -546,21 +528,13 @@ deleteDepartment=()=>{
 }
 
 deleteEmployee=()=>{
-  employeeQuery= `SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.department_name, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
-  from employee
-  left join role 
-  on employee.role_id = role.id
-  left join department 
-  on role.department_id = department.id
-  left join employee manager
-  on manager.id = employee.manager_id
-  order by employee.id;`
-  connection.query(employeeQuery, (err, res) => {
+
+  connection.query(queries.currentEmployeeQuery, (err, res) => {
     if (err) throw (err);
     console.table(res);
     const employeeChoices = res.map((employee) => {
       return {
-        name: `${employee.first_name} ${employee.last_name}`,
+        name: employee.Employee_Name,
         value: employee.id
       }
     })
@@ -578,14 +552,10 @@ deleteEmployee=()=>{
         if (err) throw err
           console.log(`\nEmployee has been deleted!`)
           viewAllEmp();
-        
       })
-    
 }))
   })
 }
-
-
 
 
 
@@ -593,19 +563,9 @@ deleteEmployee=()=>{
 const viewAllEmp = () => {
   console.log(`\n`)
   console.log('-----------------------------------------ALL CURRENT EMPLOYEES----------------------------------------')
-  const query = `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS Employee_Name, role.title AS Title, role.salary AS Salary, department.department_name AS Department, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
-  from employee
-  left join role 
-  on employee.role_id = role.id
-  left join department 
-  on role.department_id = department.id
-  left join employee manager
-  on manager.id = employee.manager_id
-  order by employee.id;`
-  connection.query(query, (err, data) => {
+  connection.query(queries.currentEmployeeQuery, (err, data) => {
       if (err) throw err
       console.table(data)
-      console.log('\n')
       whatNow();
   })
 }
@@ -614,8 +574,7 @@ const viewAllEmp = () => {
 const viewDepartments = () => {
   console.log(`\n`)
   console.log('-------------ALL DEPARTMENTS------------')
-  const query = `SELECT * FROM employeedb.department;`
-  connection.query(query, (err, data) => {
+  connection.query(queries.departmentsQuery, (err, data) => {
       if (err) throw err
       console.table(data)
       console.log(`\n`)
@@ -627,8 +586,8 @@ const viewDepartments = () => {
 const viewRoles = () => {
   console.log(`\n`)
   console.log('-------------ALL ROLES------------')
-  const query = `SELECT * FROM employeedb.role;`
-  connection.query(query, (err, data) => {
+  const allRolesQuery = "SELECT * FROM employeedb.role;"
+  connection.query(allRolesQuery, (err, data) => {
       if (err) throw err
       console.table(data)
       console.log(`\n`)
@@ -666,16 +625,7 @@ chooseDepartment=(allDepartments)=>{
       choices: allDepartments
     }
   ]).then(answer => {
-    const query = `SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.department_name, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
-    from employee
-    left join role 
-    on employee.role_id = role.id
-    left join department 
-    on role.department_id = department.id
-    left join employee manager
-    on manager.id = employee.manager_id
-    where department_id = '${answer.department}'
-    order by employee.id;`
+    const query = `${queries.viewByDeptQuery} where department.id=${answer.department}`
     connection.query(query, (err, data) => {
       if (err) throw err
       console.table(data)
@@ -687,13 +637,7 @@ chooseDepartment=(allDepartments)=>{
 
 //Function that first queries for all employees that are managers, then allows user to select a manager and view all their subordinates
 viewByManager=()=>{
-    const query = 
-    `SELECT employee.id, first_name, last_name, role.title AS role
-    FROM employee 
-    left join role 
-    on employee.role_id = role.id
-    WHERE (employee.id IN (SELECT manager_id FROM employee));`
-    connection.query(query, (err, res) => {
+    connection.query(queries.managersQuery, (err, res) => {
       if (err) throw (err);
       const managerChoices = res.map((manager) => {
         return {

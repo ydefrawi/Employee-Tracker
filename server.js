@@ -720,6 +720,7 @@ whatNow = () =>{
 connection.connect((err) => {
     if (err) throw err;
     console.log(introAscii)
+    console.log("  Hello!")
     mainMenu();
     // deleteEmployee();
     // viewAllEmp();

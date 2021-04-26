@@ -16,3 +16,4 @@ So that I can organize and plan my business
 ![Start Screen](./Images/Ascii.PNG?raw=true "Employee Tracker")
 ![Department](./Images/Department.PNG?raw=true "View Employees by Department")
 ![Manager](./Images/Manager.PNG?raw=true "View Employees By Manager")
+![Exit](./Images/exitAscii.PNG?raw=true "Exit Screen")

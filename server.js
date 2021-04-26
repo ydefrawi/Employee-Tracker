@@ -1,6 +1,23 @@
 const mysql = require('mysql');
 const path = require('path')
 const inquirer = require ('inquirer');
+const introAscii = `
+███████╗███╗   ███╗██████╗ ██╗      ██████╗ ██╗   ██╗███████╗███████╗    ████████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗ 
+██╔════╝████╗ ████║██╔══██╗██║     ██╔═══██╗╚██╗ ██╔╝██╔════╝██╔════╝    ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
+█████╗  ██╔████╔██║██████╔╝██║     ██║   ██║ ╚████╔╝ █████╗  █████╗         ██║   ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝
+██╔══╝  ██║╚██╔╝██║██╔═══╝ ██║     ██║   ██║  ╚██╔╝  ██╔══╝  ██╔══╝         ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗
+███████╗██║ ╚═╝ ██║██║     ███████╗╚██████╔╝   ██║   ███████╗███████╗       ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║
+╚══════╝╚═╝     ╚═╝╚═╝     ╚══════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
+                                                                                                                                  
+`
+const exitAscii=`\n██╗  ██╗ █████╗ ██╗   ██╗███████╗     █████╗     ███╗   ██╗██╗ ██████╗███████╗    ██████╗  █████╗ ██╗   ██╗██╗
+██║  ██║██╔══██╗██║   ██║██╔════╝    ██╔══██╗    ████╗  ██║██║██╔════╝██╔════╝    ██╔══██╗██╔══██╗╚██╗ ██╔╝██║
+███████║███████║██║   ██║█████╗      ███████║    ██╔██╗ ██║██║██║     █████╗      ██║  ██║███████║ ╚████╔╝ ██║
+██╔══██║██╔══██║╚██╗ ██╔╝██╔══╝      ██╔══██║    ██║╚██╗██║██║██║     ██╔══╝      ██║  ██║██╔══██║  ╚██╔╝  ╚═╝
+██║  ██║██║  ██║ ╚████╔╝ ███████╗    ██║  ██║    ██║ ╚████║██║╚██████╗███████╗    ██████╔╝██║  ██║   ██║   ██╗
+╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚══════╝    ╚═╝  ╚═╝    ╚═╝  ╚═══╝╚═╝ ╚═════╝╚══════╝    ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚═╝`
+
+
 
 // SQL Connection
 const connection = mysql.createConnection({
@@ -16,9 +33,9 @@ const mainMenu =  () => {
     inquirer
     .prompt({
       name: 'start',
-      type: 'list',
+      type: 'rawlist',
       message: 'What would you like to do?',
-      choices: ['Add Department','Add Role','Add Employee', "Update An Employee's Role", "Update An Employee's Manager", 'View Departments','View Roles','View Employees', 'View Employees By Department','View Employees By Manager', "View a Department's Total Budget",'Exit']
+      choices: ['Add Department','Add Role','Add Employee', "Update An Employee's Role", "Update An Employee's Manager", 'View Departments','View Roles','View Employees', 'View Employees By Department','View Employees By Manager', "View a Department's Total Budget", 'Delete Role','Delete Department','Delete Employee','Exit']
     })
     .then((answer => {
       switch (answer.start) {
@@ -55,8 +72,17 @@ const mainMenu =  () => {
           case "View a Department's Total Budget":
             departmentBudget();
             break
+          case "Delete Employee":
+            deleteEmployee();
+            break
+          case "Delete Role":
+            deleteRole();
+            break
+          case "Delete Department":
+            deleteDepartment();
+            break
           case "Exit":
-            console.log("Have a nice day!")
+            console.log(exitAscii)
             connection.end();
             break
       }
@@ -115,7 +141,7 @@ addEmployee = () => {
                 connection.query("SELECT * FROM employeedb.employee;", (err, res) => {
                   if (err) throw err
                   console.table(res)
-                  console.log(`${answers.firstName} ${answers.lastName} has been added to your employees!`)
+                  console.log(`${answer.firstName} ${answer.lastName} has been added to your employees!`)
                   addAnotherEmp();
                 })
               })
@@ -146,7 +172,7 @@ const selectManager = (managerChoices,answer) => {
             connection.query("SELECT * FROM employeedb.employee;", (err, res) => {
               if (err) throw err
               console.table(res)
-              console.log(`${answers.firstName} ${answers.lastName} has been added to your employees!`)
+              console.log(`${answers.firstName} ${answers.lastName} has been added to your employees!\n`)
               addAnotherEmp();
             })
           })
@@ -174,8 +200,48 @@ addAnotherEmp = () => {
     )
 }
 
+deleteEmployee=()=>{
+  employeeQuery= `SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.department_name, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
+  from employee
+  left join role 
+  on employee.role_id = role.id
+  left join department 
+  on role.department_id = department.id
+  left join employee manager
+  on manager.id = employee.manager_id
+  order by employee.id;`
+  connection.query(employeeQuery, (err, res) => {
+    if (err) throw (err);
+    console.table(res);
+    const employeeChoices = res.map((employee) => {
+      return {
+        name: `${employee.first_name} ${employee.last_name}`,
+        value: employee.id
+      }
+    })
+    inquirer
+    .prompt([
+      {
+        name: 'employee',
+        type: 'list',
+        message: "Which employee would you like to delete? WARNING: This cannot be undone.",
+        choices: employeeChoices
+      }
+    ]).then((answer => {
+      const deleteQuery = `DELETE FROM employee WHERE id=${answer.employee}`
+      connection.query(deleteQuery, (err, res) => {
+        if (err) throw err
+          console.log(`\nEmployee has been deleted!`)
+          viewAllEmp();
+        
+      })
+    
+}))
+  })
+}
 
-//Function that allows users to add a role. 
+
+//addRole(): Function that allows users to add a role. 
 addRole = () => {
   connection.query('SELECT * FROM department', (err, res) => {
     if (err) throw (err);
@@ -293,6 +359,71 @@ updateRole = () => {
   })
 }
 
+deleteRole=()=>{
+  roleQuery= `SELECT id, title, salary
+  FROM employeedb.role;`
+  connection.query(roleQuery, (err, res) => {
+    if (err) throw (err);
+    console.log('Role Table:')
+    console.table(res);
+    const roleChoices = res.map((role) => {
+      return {
+        name: role.title,
+        value: role.id
+      }
+    })
+    inquirer
+    .prompt([
+      {
+        name: 'role',
+        type: 'list',
+        message: `Which role would you like to delete? \n WARNING: THIS CANNOT BE UNDONE!`,
+        choices: roleChoices
+      }
+    ]).then((answer => {
+      const deleteQuery = `DELETE FROM role WHERE id=${answer.role}`
+      connection.query(deleteQuery, (err, res) => {
+        if (err) throw err
+          console.log(`\nRole has been deleted!`)
+          viewRoles();
+      })
+    
+}))
+  })
+}
+
+deleteDepartment=()=>{
+  deptQuery= `SELECT * FROM employeedb.department;`
+  connection.query(deptQuery, (err, res) => {
+    if (err) throw (err);
+    console.log('Departments Table:')
+    console.table(res);
+    const deptChoices = res.map((department) => {
+      return {
+        name: department.department_name,
+        value: department.id
+      }
+    })
+    inquirer
+    .prompt([
+      {
+        name: 'department',
+        type: 'list',
+        message: `Which department would you like to delete? \n WARNING: THIS CANNOT BE UNDONE!`,
+        choices: deptChoices
+      }
+    ]).then((answer => {
+      const deleteQuery = `DELETE FROM department WHERE id=${answer.department}`
+      connection.query(deleteQuery, (err, res) => {
+        if (err) throw err
+          console.log(`\nDepartment has been deleted!`)
+          viewDepartments();
+      })
+    
+}))
+  })
+}
+
 updateManager = () => {
   connection.query('SELECT * FROM employee', (err, res) => {
     if (err) throw (err);
@@ -404,7 +535,7 @@ addAnotherDept = () => {
 const viewAllEmp = () => {
   console.log(`\n`)
   console.log('-----------------------------------------ALL CURRENT EMPLOYEES----------------------------------------')
-  const query = `SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.department_name, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
+  const query = `SELECT employee.id, CONCAT(employee.first_name, " ", employee.last_name) AS Employee_Name, role.title AS Title, role.salary AS Salary, department.department_name AS Department, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
   from employee
   left join role 
   on employee.role_id = role.id
@@ -579,21 +710,18 @@ whatNow = () =>{
   .then(answer=>{
     if(answer.whatNow=='Return to Main Menu'){
       mainMenu();
-    } else connection.end();
+    } else {
+      console.log(exitAscii)
+      connection.end();
+    }
   })
 }
 
 connection.connect((err) => {
     if (err) throw err;
-    console.log(`
-    ███████╗███╗   ███╗██████╗ ██╗      ██████╗ ██╗   ██╗███████╗███████╗    ████████╗██████╗  █████╗  ██████╗██╗  ██╗███████╗██████╗ 
-    ██╔════╝████╗ ████║██╔══██╗██║     ██╔═══██╗╚██╗ ██╔╝██╔════╝██╔════╝    ╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
-    █████╗  ██╔████╔██║██████╔╝██║     ██║   ██║ ╚████╔╝ █████╗  █████╗         ██║   ██████╔╝███████║██║     █████╔╝ █████╗  ██████╔╝
-    ██╔══╝  ██║╚██╔╝██║██╔═══╝ ██║     ██║   ██║  ╚██╔╝  ██╔══╝  ██╔══╝         ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ ██╔══╝  ██╔══██╗
-    ███████╗██║ ╚═╝ ██║██║     ███████╗╚██████╔╝   ██║   ███████╗███████╗       ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗███████╗██║  ██║
-    ╚══════╝╚═╝     ╚═╝╚═╝     ╚══════╝ ╚═════╝    ╚═╝   ╚══════╝╚══════╝       ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
-                                                                                                                                      
-    `)
+    console.log(introAscii)
     mainMenu();
+    // deleteEmployee();
+    // viewAllEmp();
     // departmentBudget();
   });

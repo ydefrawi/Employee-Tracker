@@ -34,6 +34,7 @@ Users can do the following by following the user-friendly inquirer prompts:
     "mysql": "^2.18.1"
 
 ![Start Screen](./Images/Ascii.PNG?raw=true "Employee Tracker")
+![Employees](./Images/Employees.PNG?raw=true "View Employees")
 ![Department](./Images/Department.PNG?raw=true "View Employees by Department")
 ![Manager](./Images/Manager.PNG?raw=true "View Employees By Manager")
 ![Exit](./Images/exitAscii.PNG?raw=true "Exit Screen")

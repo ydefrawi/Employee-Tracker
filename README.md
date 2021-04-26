@@ -39,4 +39,4 @@ Users can do the following by following the user-friendly inquirer prompts:
 ![Manager](./Images/Manager.PNG?raw=true "View Employees By Manager")
 ![Exit](./Images/exitAscii.PNG?raw=true "Exit Screen")
 
-[Video Demonstration](https://drive.google.com/file/d/1-5p7utWa7fealpl7Pj2ulx6PHfeygV4o/view?usp=sharing)
+[Video Demonstration](https://drive.google.com/file/d/1yDZ0xNv2huKtr-T1hSBRrhXhz_reoyic/view?usp=sharing)

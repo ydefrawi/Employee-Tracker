@@ -35,7 +35,7 @@ const mainMenu =  () => {
       name: 'start',
       type: 'rawlist',
       message: 'What would you like to do?',
-      choices: ['Add Department','Add Role','Add Employee', "Update An Employee's Role", "Update An Employee's Manager", 'View Departments','View Roles','View Employees', 'View Employees By Department','View Employees By Manager', "View a Department's Total Budget", 'Delete Role','Delete Department','Delete Employee','Exit']
+      choices: ['Add Department','Add Role','Add Employee', "Update An Employee's Role", "Update An Employee's Manager", "Update a Role's Salary", 'View Departments','View Roles','View Employees', 'View Employees By Department','View Employees By Manager', "View a Department's Total Budget", 'Delete Role','Delete Department','Delete Employee','Exit']
     })
     .then((answer => {
       switch (answer.start) {
@@ -53,6 +53,9 @@ const mainMenu =  () => {
             break
           case "Update An Employee's Manager":
             updateManager();
+            break
+          case "Update a Role's Salary":
+            updateSalary();
             break
           case "View Departments":
             viewDepartments();
@@ -88,6 +91,53 @@ const mainMenu =  () => {
       }
     }))
 };
+
+
+//Function that allows user to add a department with an INSERT query
+addDepartment = () => {
+  inquirer
+    .prompt([
+      {
+        name: 'department',
+        type: 'input',
+        message: "Name of Department:"
+      }
+    ]).then((answer => {
+
+      const query = `INSERT INTO department (department_name) VALUES ('${answer.department}')`
+      connection.query(query, (err, res) => {
+        if (err) throw err
+        connection.query("SELECT * FROM employeedb.department;", (err, res) => {
+          if (err) throw err
+          console.table(res)
+          console.log(`\n${answer.department} has been added to your departments!\n`)
+          addAnotherDept();
+        })
+      })
+
+    }))
+}
+
+//addDepartment() helper function that asks user if they wish to create another Department. Calls addDepartment() if Yes
+addAnotherDept = () => {
+  addAnother =
+  {
+    name: 'addDepartment',
+    type: 'list',
+    message: "Would you like to add another department?",
+    choices: ['Yes', 'No']
+  }
+
+  inquirer
+    .prompt(addAnother)
+    .then((answer => {
+      if (answer.addDepartment === 'Yes') {
+        addDepartment();
+        return;
+      } else mainMenu();
+    })
+    )
+}
 
 //Function that prompts user for info on the employee they'd like to add
 addEmployee = () => {
@@ -172,7 +222,7 @@ const selectManager = (managerChoices,answer) => {
             connection.query("SELECT * FROM employeedb.employee;", (err, res) => {
               if (err) throw err
               console.table(res)
-              console.log(`${answers.firstName} ${answers.lastName} has been added to your employees!\n`)
+              console.log(`${answer.firstName} ${answer.lastName} has been added to your employees!\n`)
               addAnotherEmp();
             })
           })
@@ -198,46 +248,6 @@ addAnotherEmp = () => {
       } else mainMenu();
     })
     )
-}
-
-deleteEmployee=()=>{
-  employeeQuery= `SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.department_name, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
-  from employee
-  left join role 
-  on employee.role_id = role.id
-  left join department 
-  on role.department_id = department.id
-  left join employee manager
-  on manager.id = employee.manager_id
-  order by employee.id;`
-  connection.query(employeeQuery, (err, res) => {
-    if (err) throw (err);
-    console.table(res);
-    const employeeChoices = res.map((employee) => {
-      return {
-        name: `${employee.first_name} ${employee.last_name}`,
-        value: employee.id
-      }
-    })
-    inquirer
-    .prompt([
-      {
-        name: 'employee',
-        type: 'list',
-        message: "Which employee would you like to delete? WARNING: This cannot be undone.",
-        choices: employeeChoices
-      }
-    ]).then((answer => {
-      const deleteQuery = `DELETE FROM employee WHERE id=${answer.employee}`
-      connection.query(deleteQuery, (err, res) => {
-        if (err) throw err
-          console.log(`\nEmployee has been deleted!`)
-          viewAllEmp();
-        
-      })
-    
-}))
-  })
 }
 
 
@@ -286,7 +296,7 @@ addRole = () => {
       })
   }
 
-//helper function that asks user if they wish to create another role. Calls addrole() if Yes
+//helper function that asks user if they wish to create another role. Calls addRole() again if Yes.
 addAnotherRole = () => {
   addAnother =
   {
@@ -340,16 +350,117 @@ updateRole = () => {
           },
         ]).then((answer => {
           console.log(answer)
-              const query = `
+          const query = `
               UPDATE employee
               SET role_id = ${answer.role}
               WHERE id=${answer.employee};`
-              connection.query(query, (err, res) => {
+          connection.query(query, (err, res) => {
+            if (err) throw err
+            connection.query("SELECT * FROM employeedb.employee;", (err, res) => {
+              if (err) throw err
+              console.table(res)
+              console.log(`Employee's role has been updated!`)
+              whatNow();
+            })
+          })
+
+        }))
+    })
+  })
+}
+
+updateSalary = () => {
+  const roleQuery = "SELECT * FROM employeedb.role;"
+  connection.query(roleQuery, (err, res) => {
+    if (err) throw (err);
+    console.table(res)
+    const roleChoices = res.map((role) => {
+      return {
+        name: role.title,
+        value: role.id
+      }
+    })
+    inquirer
+    .prompt([
+      {
+        name: 'role',
+        type: 'list',
+        message: "Which role's salary would you like to update?",
+        choices: roleChoices,
+      },
+      {
+        name: 'salary',
+        type: 'input',
+        message: "Input new salary:",
+      }
+    ]).then((answer => {
+      const salaryUpdate = `UPDATE role SET salary = '${answer.salary}' WHERE id=${answer.role};`
+      connection.query(salaryUpdate, (err, res) => {
+        if (err) throw (err);
+        const updatedSalary = `SELECT title, salary FROM employeedb.role where id = ${answer.role}`
+        connection.query(updatedSalary, (err, res) => {
+          if (err) throw (err);
+          console.table(res);
+          console.log(`Role salary has been updated!\n`)
+          whatNow();
+        })
+      })
+
+    }))
+  })
+}
+
+updateManager = () => {
+  connection.query('SELECT * FROM employee', (err, res) => {
+    if (err) throw (err);
+    const employeeChoices = res.map((employee) => {
+      return {
+        name: `${employee.first_name} ${employee.last_name}`,
+        value: employee.id
+      }
+    })
+    connection.query('SELECT * FROM employee', (err, res) => {
+      if (err) throw (err);
+      const managerChoices = res.map((manager) => {
+        return {
+          name: `${manager.first_name} ${manager.last_name}`,
+          value: manager.id
+        }
+      })
+      inquirer
+        .prompt([
+          {
+            name: 'employee',
+            type: 'list',
+            message: "Which Employee's manager would you like to update?",
+            choices: employeeChoices
+          },
+          {
+            name: 'manager',
+            type: 'list',
+            message: "Who is their new manager?",
+            choices: managerChoices
+          },
+        ]).then((answer => {
+              const query1 = `
+              UPDATE employee
+              SET manager_id = ${answer.manager}
+              WHERE id=${answer.employee};`
+              connection.query(query1, (err, res) => {
                 if (err) throw err
-                connection.query("SELECT * FROM employeedb.employee;", (err, res) => {
+                query2=`SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.department_name, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
+                from employee
+                left join role 
+                on employee.role_id = role.id
+                left join department 
+                on role.department_id = department.id
+                left join employee manager
+                on manager.id = employee.manager_id
+                order by employee.id;`
+                connection.query(query2, (err, res) => {
                   if (err) throw err
                   console.table(res)
-                  console.log(`Employee's role has been updated!`)
+                  console.log(`Employee's manager has been updated!`)
                   whatNow();
                 })
               })
@@ -358,6 +469,7 @@ updateRole = () => {
       })
   })
 }
+
 
 deleteRole=()=>{
   roleQuery= `SELECT id, title, salary
@@ -424,114 +536,51 @@ deleteDepartment=()=>{
   })
 }
 
-updateManager = () => {
-  connection.query('SELECT * FROM employee', (err, res) => {
+deleteEmployee=()=>{
+  employeeQuery= `SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.department_name, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
+  from employee
+  left join role 
+  on employee.role_id = role.id
+  left join department 
+  on role.department_id = department.id
+  left join employee manager
+  on manager.id = employee.manager_id
+  order by employee.id;`
+  connection.query(employeeQuery, (err, res) => {
     if (err) throw (err);
+    console.table(res);
     const employeeChoices = res.map((employee) => {
       return {
         name: `${employee.first_name} ${employee.last_name}`,
         value: employee.id
       }
     })
-    connection.query('SELECT * FROM employee', (err, res) => {
-      if (err) throw (err);
-      const managerChoices = res.map((manager) => {
-        return {
-          name: `${manager.first_name} ${manager.last_name}`,
-          value: manager.id
-        }
+    inquirer
+    .prompt([
+      {
+        name: 'employee',
+        type: 'list',
+        message: "Which employee would you like to delete? WARNING: This cannot be undone.",
+        choices: employeeChoices
+      }
+    ]).then((answer => {
+      const deleteQuery = `DELETE FROM employee WHERE id=${answer.employee}`
+      connection.query(deleteQuery, (err, res) => {
+        if (err) throw err
+          console.log(`\nEmployee has been deleted!`)
+          viewAllEmp();
+        
       })
-      inquirer
-        .prompt([
-          {
-            name: 'employee',
-            type: 'list',
-            message: "Which Employee's manager would you like to update?",
-            choices: employeeChoices
-          },
-          {
-            name: 'manager',
-            type: 'list',
-            message: "Who is their new manager?",
-            choices: managerChoices
-          },
-        ]).then((answer => {
-              const query1 = `
-              UPDATE employee
-              SET manager_id = ${answer.manager}
-              WHERE id=${answer.employee};`
-              connection.query(query1, (err, res) => {
-                if (err) throw err
-                query2=`SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.department_name, coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name
-                from employee
-                left join role 
-                on employee.role_id = role.id
-                left join department 
-                on role.department_id = department.id
-                left join employee manager
-                on manager.id = employee.manager_id
-                order by employee.id;`
-                connection.query(query2, (err, res) => {
-                  if (err) throw err
-                  console.table(res)
-                  console.log(`Employee's manager has been updated!`)
-                  whatNow();
-                })
-              })
-
-        }))
-      })
+    
+}))
   })
 }
 
-addDepartment = () => {
-  inquirer
-    .prompt([
-      {
-        name: 'department',
-        type: 'input',
-        message: "Name of Department:"
-      }
-    ]).then((answer => {
-
-      const query = `INSERT INTO department (department_name) VALUES ('${answer.department}')`
-      connection.query(query, (err, res) => {
-        if (err) throw err
-        connection.query("SELECT * FROM employeedb.department;", (err, res) => {
-          if (err) throw err
-          console.table(res)
-          console.log(`\n${answer.department} has been added to your departments!\n`)
-          addAnotherDept();
-        })
-      })
-
-    }))
-}
-
-//helper function that asks user if they wish to create another role. Calls addrole() if Yes
-addAnotherDept = () => {
-  addAnother =
-  {
-    name: 'addDepartment',
-    type: 'list',
-    message: "Would you like to add another department?",
-    choices: ['Yes', 'No']
-  }
-
-  inquirer
-    .prompt(addAnother)
-    .then((answer => {
-      if (answer.addDepartment === 'Yes') {
-        addDepartment();
-        return;
-      } else mainMenu();
-    })
-    )
-}
 
 
 
-//Function to display all employees with their Managers 
+
+//Function to display all employees along with their Title, Salary, Department, and Manager_Name 
 const viewAllEmp = () => {
   console.log(`\n`)
   console.log('-----------------------------------------ALL CURRENT EMPLOYEES----------------------------------------')
@@ -552,6 +601,7 @@ const viewAllEmp = () => {
   })
 }
 
+//Function that displays all current Departments
 const viewDepartments = () => {
   console.log(`\n`)
   console.log('-------------ALL DEPARTMENTS------------')
@@ -564,6 +614,7 @@ const viewDepartments = () => {
   })
 }
 
+//Function that displays all current roles
 const viewRoles = () => {
   console.log(`\n`)
   console.log('-------------ALL ROLES------------')
@@ -595,7 +646,7 @@ const viewByDepartment = () => {
   })
 }
 
-//Helper function for viewByDepartment() with an inquirer prompt that allows user to select department. Takes in array of departments as an argument
+//Helper function for viewByDepartment() with an inquirer prompt that allows user to select department. Takes in array of all current departments as an argument
 chooseDepartment=(allDepartments)=>{
   inquirer
   .prompt([
@@ -625,12 +676,19 @@ chooseDepartment=(allDepartments)=>{
   })
 }
 
+//Function that first queries for all employees that are managers, then allows user to select a manager and view all their subordinates
 viewByManager=()=>{
-    connection.query('SELECT * FROM employee WHERE manager_id IS NULL;', (err, res) => {
+    const query = 
+    `SELECT employee.id, first_name, last_name, role.title AS role
+    FROM employee 
+    left join role 
+    on employee.role_id = role.id
+    WHERE (employee.id IN (SELECT manager_id FROM employee));`
+    connection.query(query, (err, res) => {
       if (err) throw (err);
       const managerChoices = res.map((manager) => {
         return {
-          name: `${manager.first_name} ${manager.last_name}`,
+          name: `${manager.first_name} ${manager.last_name} (${manager.role})`,
           value: manager.id
         }
       })
@@ -644,7 +702,7 @@ viewByManager=()=>{
           },
         ]).then((answer => {
               const query = `
-              SELECT  coalesce(CONCAT(manager.first_name, " ", manager.last_name), 'None')  AS Manager_Name,  CONCAT(employee.first_name, " ", employee.last_name) AS Employee_Name, employee.id AS Employee_ID,role.title AS Title, role.salary, department.department_name  
+              SELECT  CONCAT(manager.first_name, " ", manager.last_name)  AS Manager_Name, employee.manager_id AS Manager_ID,CONCAT(employee.first_name, " ", employee.last_name) AS Subordinate_Name, employee.id AS Subordinate_ID, role.title AS Subordinate_Role
               from employee
               left join role 
               on employee.role_id = role.id
@@ -663,7 +721,7 @@ viewByManager=()=>{
       })
 }
 
-
+//Function that displays the sum of all employee salaries in a chosen department
 const departmentBudget = () => {
   const query = `SELECT * FROM department`
   connection.query(query, (err, data) => {
@@ -722,7 +780,5 @@ connection.connect((err) => {
     console.log(introAscii)
     console.log("  Hello!")
     mainMenu();
-    // deleteEmployee();
-    // viewAllEmp();
-    // departmentBudget();
+    // updateSalary();
   });

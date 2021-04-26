@@ -11,22 +11,23 @@ I want to be able to view and manage the departments, roles, and employees in my
 So that I can organize and plan my business
 ```
 ## Usage 
-Users can do the following by following the user-friendly prompts: 
+Users can do the following by following the user-friendly inquirer prompts: 
 ```
 1) Add Department
 2) Add Role
 3) Add Employee
 4) Update An Employee's Role
 5) Update An Employee's Manager
-6) View Departments
-7) View Roles
-8) View Employees
-9) View Employees By Department
-10) View Employees By Manager
-11) View a Department's Total Budget
-12) Delete a Role
-13) Delete a Department
-14) Delete an Employee
+6) Update A Role's Salary
+7) View Departments
+8) View Roles
+9) View Employees
+10) View Employees By Department
+11) View Employees By Manager
+12) View a Department's Total Budget
+13) Delete a Role
+14) Delete a Department
+15) Delete an Employee
 ```
 ## Dependencies
     "inquirer": "^8.0.0",

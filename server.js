@@ -1,7 +1,7 @@
 const mysql = require('mysql');
 const inquirer = require ('inquirer');
 let queries = require ('./queries')
-let ascii = require ('./ascii')
+let ascii = require ('./Assets/ascii')
 
 // SQL Connection
 const connection = mysql.createConnection({

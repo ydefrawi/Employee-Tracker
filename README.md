@@ -36,7 +36,7 @@ Users can do the following by following the user-friendly inquirer prompts:
 ![Start Screen](./Images/Ascii.PNG?raw=true "Employee Tracker")
 ![Employees](./Images/Employees.PNG?raw=true "View Employees")
 ![Department](./Images/Department.PNG?raw=true "View Employees by Department")
-![Manager](./Images/Manager.PNG?raw=true "View Employees By Manager")
+![Manager](./Images/Manager2.PNG?raw=true "View Employees By Manager")
 ![Exit](./Images/exitAscii.PNG?raw=true "Exit Screen")
 
 [Video Demonstration](https://drive.google.com/file/d/1yDZ0xNv2huKtr-T1hSBRrhXhz_reoyic/view?usp=sharing)

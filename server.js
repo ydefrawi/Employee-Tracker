@@ -3,8 +3,6 @@ const inquirer = require ('inquirer');
 let queries = require ('./queries')
 let ascii = require ('./ascii')
 
-
-
 // SQL Connection
 const connection = mysql.createConnection({
     host: 'localhost',
@@ -45,7 +43,6 @@ const mainMenu =  () => {
       choiceFunctionMap[answer.start]()
     }))
 };
-
 
 //Function that allows user to add a department with an INSERT query
 addDepartment = () => {
@@ -323,6 +320,7 @@ updateRole = () => {
   })
 }
 
+//Function that allows user to change the salary for any role
 updateSalary = () => {
   const roleQuery = "SELECT * FROM employeedb.role;"
   connection.query(roleQuery, (err, res) => {
@@ -364,6 +362,7 @@ updateSalary = () => {
   })
 }
 
+//Function that allows user to change an employees manager
 updateManager = () => {
   connection.query('SELECT * FROM employee', (err, res) => {
     if (err) throw (err);
@@ -414,7 +413,7 @@ updateManager = () => {
   })
 }
 
-
+//Deletes Roles
 deleteRole=()=>{
   roleQuery= `SELECT id, title, salary
   FROM employeedb.role;`
@@ -448,6 +447,7 @@ deleteRole=()=>{
   })
 }
 
+//Allows user to delete departments
 deleteDepartment=()=>{
   deptQuery= `SELECT * FROM employeedb.department;`
   connection.query(deptQuery, (err, res) => {
@@ -480,8 +480,8 @@ deleteDepartment=()=>{
   })
 }
 
+//Allows uer to delete employee
 deleteEmployee=()=>{
-
   connection.query(queries.currentEmployeeQuery, (err, res) => {
     if (err) throw (err);
     console.table(res);
@@ -509,8 +509,6 @@ deleteEmployee=()=>{
 }))
   })
 }
-
-
 
 //Function to display all employees along with their Title, Salary, Department, and Manager_Name 
 const viewAllEmp = () => {
@@ -680,6 +678,7 @@ whatNow = () =>{
   })
 }
 
+//Starts SQL connection, displays Employee Tracker ASCII art and calls mainMenu()
 connection.connect((err) => {
     if (err) throw err;
     console.log(ascii.introAscii)

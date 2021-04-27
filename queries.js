@@ -45,11 +45,11 @@ left join role
 on employee.role_id = role.id
 WHERE (employee.id IN (SELECT manager_id FROM employee));`
 
-module.exports.currentEmployeeQuery = currentEmployeeQuery
-module.exports.departmentsQuery = departmentsQuery
-module.exports.rolesQuery = rolesQuery;
-module.exports.employeeTableQuery = employeeTableQuery
-module.exports.managersQuery=managersQuery
-module.exports.newEmpMgrQuery=newEmpMgrQuery;
-module.exports.newRoleQuery=newRoleQuery;
-module.exports.viewByDeptQuery=viewByDeptQuery;
+exports.currentEmployeeQuery = currentEmployeeQuery
+exports.departmentsQuery = departmentsQuery
+exports.rolesQuery = rolesQuery;
+exports.employeeTableQuery = employeeTableQuery
+exports.managersQuery=managersQuery
+exports.newEmpMgrQuery=newEmpMgrQuery;
+exports.newRoleQuery=newRoleQuery;
+exports.viewByDeptQuery=viewByDeptQuery;

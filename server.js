@@ -39,57 +39,25 @@ const mainMenu =  () => {
       choices: ['Add Department','Add Role','Add Employee', "Update An Employee's Role", "Update An Employee's Manager", "Update a Role's Salary", 'View Departments','View Roles','View Employees', 'View Employees By Department','View Employees By Manager', "View a Department's Total Budget", 'Delete Role','Delete Department','Delete Employee','Exit']
     })
     .then((answer => {
-      switch (answer.start) {
-          case "Add Employee":
-            addEmployee();
-            break
-          case "Add Role":
-            addRole();
-            break
-          case "Add Department":
-            addDepartment();
-            break
-          case "Update An Employee's Role":
-            updateRole();
-            break
-          case "Update An Employee's Manager":
-            updateManager();
-            break
-          case "Update a Role's Salary":
-            updateSalary();
-            break
-          case "View Departments":
-            viewDepartments();
-            break
-          case "View Roles":
-            viewRoles();
-            break
-          case "View Employees":
-            viewAllEmp();
-            break
-          case "View Employees By Department":
-            viewByDepartment();
-            break
-          case "View Employees By Manager":
-            viewByManager();
-            break
-          case "View a Department's Total Budget":
-            departmentBudget();
-            break
-          case "Delete Employee":
-            deleteEmployee();
-            break
-          case "Delete Role":
-            deleteRole();
-            break
-          case "Delete Department":
-            deleteDepartment();
-            break
-          case "Exit":
-            console.log(exitAscii)
-            connection.end();
-            break
-      }
+     const choiceFunctionMap = {
+       "Add Department": viewAllEmp,
+       'Add Role': addRole,
+       'Add Employee': addEmployee,
+       "Update An Employee's Role": updateRole,
+       "Update An Employee's Manager":updateManager,
+       "Update a Role's Salary":updateSalary,
+       'View Departments':viewDepartments,
+       'View Roles':viewRoles,
+       'View Employees':viewAllEmp,
+        'View Employees By Department':viewByDepartment,
+        'View Employees By Manager':viewByManager,
+        "View a Department's Total Budget":departmentBudget,
+        'Delete Role':deleteRole,
+        'Delete Department':deleteDepartment,
+        'Delete Employee':deleteEmployee,
+        'Exit':() => { console.log(exitAscii); connection.end() }
+      } 
+      choiceFunctionMap[answer.start]()
     }))
 };
 
@@ -607,7 +575,6 @@ const viewByDepartment = () => {
         value: department.id
       }
     })
-    allDepartments.push("None")
     console.table(data)
     console.log('\n')
     chooseDepartment(allDepartments)

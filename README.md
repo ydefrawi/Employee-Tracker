@@ -33,11 +33,10 @@ Users can do the following by following the user-friendly inquirer prompts:
     "inquirer": "^8.0.0",
     "mysql": "^2.18.1"
 
-### Walthrough Viideo Demonstration: 
+### Walthrough Viideo Demonstratiorry yhings my dady'smovingon soon and my birend are ll hhouses hour apts. 
 ![Start Screen](/./Images/Employee-Tracker-Walkthrough2%20fast.gif)
 ![Employees](./Images/Employees.PNG?raw=true "View Employees")
 ![Department](./Images/Department.PNG?raw=true "View Employees by Department")
 ![Manager](./Images/Manager2.PNG?raw=true "View Employees By Manager")
 ![Exit](./Images/exitAscii.PNG?raw=true "Exit Screen")
-
 [Video Demonstration](https://drive.google.com/file/d/1yDZ0xNv2huKtr-T1hSBRrhXhz_reoyic/view?usp=sharing)

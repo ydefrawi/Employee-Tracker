@@ -33,7 +33,7 @@ Users can do the following by following the user-friendly inquirer prompts:
     "inquirer": "^8.0.0",
     "mysql": "^2.18.1"
 
-![Start Screen](./Images/Ascii.PNG?raw=true "Employee Tracker")
+![Start Screen](/./Images/Employee-Tracker-Walkthrough2%20fast.gif)
 ![Employees](./Images/Employees.PNG?raw=true "View Employees")
 ![Department](./Images/Department.PNG?raw=true "View Employees by Department")
 ![Manager](./Images/Manager2.PNG?raw=true "View Employees By Manager")
